@@ -14,7 +14,7 @@ sealed class CartServiceImpl(taxRange: BigDecimal = BigDecimal("0.10"),
     extends CartService
     with TaxOps
     with LazyLogging {
-  private final val cart: mutable.Map[UUID, Item] = mutable.Map.empty[UUID, Item]
+  private lazy val cart: mutable.Map[UUID, Item] = mutable.Map.empty[UUID, Item]
 
   private def updateOrRemove(item: Item): UUID = {
     val productId = item.id
