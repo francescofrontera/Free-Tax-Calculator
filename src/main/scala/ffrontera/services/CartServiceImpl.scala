@@ -8,45 +8,48 @@ import ffrontera.models.Item
 
 import scala.collection.mutable
 
-//FIXME: Paramtrized Service
-sealed class CartServiceImpl extends CartService with TaxOps with LazyLogging {
-  final val BasicRate = BigDecimal("0.10")
-  final val ImportedRate = BigDecimal("0.05")
-  final val StartingTot = BigDecimal("0.0")
+sealed class CartServiceImpl(taxRange: BigDecimal = BigDecimal("0.10"),
+                             importedTaxRange: BigDecimal = BigDecimal("0.05"),
+                             roundTax: BigDecimal = BigDecimal("0.05"))
+    extends CartService
+    with TaxOps
+    with LazyLogging {
+  private final val cart: mutable.Map[UUID, Item] = mutable.Map.empty[UUID, Item]
 
-  private final val cart = mutable.Map.empty[UUID, (Item, Int)]
-
-  private def updateOrRemove(item: Item, quantity: Int): (UUID, Int) = {
+  private def updateOrRemove(item: Item): UUID = {
     val productId = item.id
+    val quantity = item.quantity
 
     logger.info(s"Remove $quantity for product: $productId from shopping cart")
     val decrementQuantity = quantity - 1
 
-    if (quantity >= 1) cart(productId) = (item, decrementQuantity)
+    if (quantity >= 1) cart(productId) = item.copy(quantity = decrementQuantity)
     else cart.remove(productId)
 
-    (productId, decrementQuantity)
+    productId
   }
 
-  override def addProduct(
-      item: Item,
-      quantity: Int = 1): Either[CommonError.CartError, (UUID, Int)] = {
-    val pId = item.id
+  @inline def getAllProducts: Seq[Item] = cart.values.toSeq
 
-    if (quantity >= 1) {
-      logger.info(s"added product=$pId, quantity=$quantity")
-      cart(pId) = (item, quantity)
-      Right((pId, quantity))
+  @inline def getItem(id: UUID): Option[Item] = cart.get(id)
+
+  def addProduct(item: Item): Either[CommonError.CartError, UUID] = {
+    val pId = item.id
+    val qt = item.quantity
+    if (qt >= 1) {
+      logger.info(s"added product=$pId, quantity=$qt")
+      cart(pId) = item
+      Right(pId)
     } else {
-      logger.error(s"Invalid quantity, caused by $quantity for producut $pId")
+      logger.error(s"Invalid quantity, caused by $qt for producut $pId")
       Left(CommonError.InvalidQuantityException(""))
     }
   }
 
-  override def removeProduct(pId: UUID): Either[CommonError.CartError, (UUID, Int)] =
+  def removeProduct(pId: UUID): Either[CommonError.CartError, UUID] =
     cart.get(pId) match {
-      case Some((product, quantity)) =>
-        Right(updateOrRemove(product, quantity))
+      case Some(product) =>
+        Right(updateOrRemove(product))
       case None =>
         Left(
           CommonError.NoSuchProductException(
@@ -56,18 +59,25 @@ sealed class CartServiceImpl extends CartService with TaxOps with LazyLogging {
   override def calculateTaxForAllProducts: SalesTaxResult = {
     logger.info("Starting to calculate all tax for cart products...")
     cart.values.toList
-      .foldLeft((List.empty[Item], StartingTot, StartingTot)) {
-        case (acc, (product, qt)) =>
+      .foldLeft((List.empty[Item], zero, zero)) {
+        case (acc, product) =>
           val (products, tot, totTaxs) = acc
-          val Item(category, _, price, isImported, _) = product
+          val Item(category, _, price, isImported, qt, _) = product
 
-          val totalClass =
-            composeCalculationAndScale(price, category, isImported)
-          val newPrice = price + totalClass
+          val totalClass = composeCalculationAndScale(
+            price,
+            taxRange,
+            importedTaxRange,
+            roundTax,
+            category,
+            isImported
+          )
+
+          val newPrice = (price + totalClass) * qt
 
           (product.copy(price = newPrice) :: products,
            tot + newPrice,
-           totTaxs + totalClass)
+           totTaxs + (totalClass * qt))
       }
 
   }

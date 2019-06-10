@@ -5,23 +5,24 @@ import ffrontera.models.ProductEnum
 trait TaxOps { _: CartServiceImpl =>
   import ffrontera.Utils._
 
-  private def calculateTax =
-    (price: BigDecimal, category: ProductEnum.Category) =>
-      if (ProductEnum.notTaxCategory(category)) price * BasicRate
-      else StartingTot
-
-  private def calculateImportedTax =
-    (price: BigDecimal, isImported: Boolean) =>
-      if (isImported) price * ImportedRate
-      else StartingTot
+  @inline protected def zero: BigDecimal = BigDecimal("0.0")
+  @inline private def calculateTax = (price: BigDecimal, range: BigDecimal) => price * range
 
   protected def composeCalculationAndScale(price: BigDecimal,
+                                           basetax: BigDecimal,
+                                           importedTax: BigDecimal,
+                                           roundApproximation: BigDecimal,
                                            category: ProductEnum.Category,
-                                           isImported: Boolean) = {
-    val cTax = calculateTax(price, category)
-    val iTax = calculateImportedTax(price, isImported)
+                                           isImported: Boolean): BigDecimal = {
+    val gTax =
+      if (ProductEnum.notTaxCategory(category)) calculateTax(price, basetax)
+      else zero
 
-    (cTax + iTax) roundField ImportedRate
+    val iTax =
+      if (isImported) calculateTax(price, importedTax)
+      else zero
+
+    (gTax + iTax) roundField roundApproximation
   }
 
 }
