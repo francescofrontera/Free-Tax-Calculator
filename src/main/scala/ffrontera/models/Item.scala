@@ -12,14 +12,6 @@ object Item {
             qt: Int = 1,
             id: UUID = UUID.randomUUID()): Item =
     new Item(category, name, BigDecimal(price), isImported, qt, id)
-
-  def apply(category: Category,
-            name: String,
-            price: Double,
-            isImported: Boolean,
-            qt: Int,
-            id: UUID): Item =
-    new Item(category, name, BigDecimal(price), isImported, qt, id)
 }
 
 sealed case class Item(category: ProductEnum.Category,

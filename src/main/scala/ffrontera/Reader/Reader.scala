@@ -4,7 +4,7 @@ import java.io.File
 
 import ffrontera.models.Item
 
-
+//INTRODUCING READER
 trait Reader {
   def apply(): Seq[Item]
 }
