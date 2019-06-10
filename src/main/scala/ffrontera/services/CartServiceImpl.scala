@@ -12,8 +12,9 @@ import scala.collection.mutable
 sealed class CartServiceImpl extends CartService with LazyLogging {
   import Utils._
 
-  final val BasicRate = new java.math.BigDecimal("0.10")
-  final val ImportedRate = new java.math.BigDecimal("0.05")
+  final val BasicRate = BigDecimal("0.10")
+  final val ImportedRate = BigDecimal("0.05")
+  final val StartingTot = BigDecimal("0.0")
 
   private final val cart = mutable.Map.empty[UUID, (Item, Int)]
 
@@ -29,7 +30,9 @@ sealed class CartServiceImpl extends CartService with LazyLogging {
     (productId, decrementQuantity)
   }
 
-  override def addProduct(item: Item, quantity: Int = 1): Either[CommonError.CartError, (UUID, Int)] = {
+  override def addProduct(
+      item: Item,
+      quantity: Int = 1): Either[CommonError.CartError, (UUID, Int)] = {
     val pId = item.id
 
     logger.info(s"added product=$pId, quantity=$quantity")
@@ -42,7 +45,8 @@ sealed class CartServiceImpl extends CartService with LazyLogging {
     }
   }
 
-  override def removeProduct(pId: UUID): Either[CommonError.CartError, (UUID, Int)] = {
+  override def removeProduct(
+      pId: UUID): Either[CommonError.CartError, (UUID, Int)] = {
     val getProduct = cart.get(pId)
 
     val result = getProduct map { pWithQuantity =>
@@ -60,30 +64,29 @@ sealed class CartServiceImpl extends CartService with LazyLogging {
   override def calculateTaxForAllProducts: SalesTaxResult = {
     logger.info("Starting to calculate all tax for cart products...")
     cart.values.toList
-      .foldLeft(
-        (List.empty[Item],
-         new java.math.BigDecimal("0.0"),
-         new java.math.BigDecimal("0.0"))) {
+      .foldLeft((List.empty[Item], StartingTot, StartingTot)) {
         case (acc, (product, qt)) =>
           val (products, tot, totTaxs) = acc
           val Item(category, _, price, isImported, _) = product
 
           //FIXME: USING FUNCTION
           val calculateSalesTax =
-            if (ProductEnum.notTaxCategory(category)) price.multiply(BasicRate)
-            else new java.math.BigDecimal("0.0")
+            if (ProductEnum.notTaxCategory(category)) price * BasicRate
+            else StartingTot
 
           val calculateImportedTax =
-            if (isImported) price.multiply(ImportedRate)
-            else new java.math.BigDecimal("0.0")
+            if (isImported) price * ImportedRate
+            else StartingTot
 
-          val totalClass = calculateSalesTax.add(calculateImportedTax).roundField
+          val totalClass =
+            (calculateSalesTax + calculateImportedTax).roundField(ImportedRate)
 
-          val newPrice = price.add(totalClass)
+
+          val newPrice = price + totalClass
 
           (product.copy(price = newPrice) :: products,
-           tot.add(newPrice),
-           (totTaxs.add(totalClass)))
+            tot + newPrice,
+            totTaxs + totalClass)
       }
 
   }

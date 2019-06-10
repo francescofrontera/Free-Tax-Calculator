@@ -27,10 +27,10 @@ object Item {
             price: String,
             isImported: Boolean = false,
             id: UUID = UUID.randomUUID()): Item =
-    new Item(category, name, new java.math.BigDecimal(price), isImported, id)
+    new Item(category, name, BigDecimal(price), isImported, id)
 }
 sealed case class Item(category: ProductEnum.Category,
                        name: String,
-                       price: java.math.BigDecimal,
+                       price: BigDecimal,
                        isImported: Boolean,
                        id: UUID)
