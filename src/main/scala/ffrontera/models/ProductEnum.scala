@@ -15,4 +15,11 @@ object ProductEnum {
   def notTaxCategory(category: Category): Boolean =
     !notApplicableTaxCategory.contains(category)
 
+  def fromString(in: String): Category = in.toLowerCase match {
+    case "food"    => Food
+    case "book"    => Book
+    case "medical" => Medical
+    case _         => Other
+  }
+
 }

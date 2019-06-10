@@ -1,6 +1,7 @@
-package ffrontera.services
+package ffrontera.services.ops
 
 import ffrontera.models.ProductEnum
+import ffrontera.services.CartServiceImpl
 
 trait TaxOps { _: CartServiceImpl =>
   import ffrontera.Utils._

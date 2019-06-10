@@ -5,8 +5,19 @@ import java.util.UUID
 import com.typesafe.scalalogging.LazyLogging
 import ffrontera.errors.CommonError
 import ffrontera.models.Item
+import ffrontera.services.ops.TaxOps
 
 import scala.collection.mutable
+
+object CartServiceImpl {
+  def fromSeq(in: Seq[Item],
+              taxRange: BigDecimal = BigDecimal("0.10"),
+              importTaxRange: BigDecimal = BigDecimal("0.05")) = {
+    val serv = new CartServiceImpl(taxRange = taxRange, importedTaxRange = importTaxRange)
+    in.foreach(serv.addProduct)
+    serv
+  }
+}
 
 sealed class CartServiceImpl(taxRange: BigDecimal = BigDecimal("0.10"),
                              importedTaxRange: BigDecimal = BigDecimal("0.05"),
@@ -23,7 +34,8 @@ sealed class CartServiceImpl(taxRange: BigDecimal = BigDecimal("0.10"),
     logger.info(s"Remove $quantity for product: $productId from shopping cart")
     val decrementQuantity = quantity - 1
 
-    if (quantity >= 1) cart(productId) = item.copy(quantity = decrementQuantity)
+    if (decrementQuantity >= 1)
+      cart(productId) = item.copy(quantity = decrementQuantity)
     else cart.remove(productId)
 
     productId
@@ -33,17 +45,10 @@ sealed class CartServiceImpl(taxRange: BigDecimal = BigDecimal("0.10"),
 
   @inline def getItem(id: UUID): Option[Item] = cart.get(id)
 
-  def addProduct(item: Item): Either[CommonError.CartError, UUID] = {
+  def addProduct(item: Item): UUID = {
     val pId = item.id
-    val qt = item.quantity
-    if (qt >= 1) {
-      logger.info(s"added product=$pId, quantity=$qt")
-      cart(pId) = item
-      Right(pId)
-    } else {
-      logger.error(s"Invalid quantity, caused by $qt for producut $pId")
-      Left(CommonError.InvalidQuantityException(""))
-    }
+    cart(pId) = item
+    pId
   }
 
   def removeProduct(pId: UUID): Either[CommonError.CartError, UUID] =
@@ -56,29 +61,31 @@ sealed class CartServiceImpl(taxRange: BigDecimal = BigDecimal("0.10"),
             s"Not found product with this id: $pId"))
     }
 
-  override def calculateTaxForAllProducts: SalesTaxResult = {
+  def calculateTaxForAllProducts: SalesTaxResult = {
     logger.info("Starting to calculate all tax for cart products...")
-    cart.values.toList
-      .foldLeft((List.empty[Item], zero, zero)) {
-        case (acc, product) =>
-          val (products, tot, totTaxs) = acc
-          val Item(category, _, price, isImported, qt, _) = product
+    val itemsAsSeq = cart.values.toSeq
 
-          val totalClass = composeCalculationAndScale(
-            price,
-            taxRange,
-            importedTaxRange,
-            roundTax,
-            category,
-            isImported
-          )
+    itemsAsSeq.foldLeft((List.empty[Item], zero, zero)) {
+      case (acc, item) =>
+        val (items, tot, totTax) = acc
+        val Item(category, _, price, isImported, qt, _) = item
 
-          val newPrice = (price + totalClass) * qt
+        val totalClass = composeCalculationAndScale(
+          price,
+          taxRange,
+          importedTaxRange,
+          roundTax,
+          category,
+          isImported
+        )
 
-          (product.copy(price = newPrice) :: products,
-           tot + newPrice,
-           totTaxs + (totalClass * qt))
-      }
+        val newPrice = (price + totalClass) * qt
+        val updatedItems = item.copy(price = newPrice) :: items
+        val updatedTot = tot + newPrice
+        val updatedTax = totTax + (totalClass * qt)
+
+        (updatedItems, updatedTot, updatedTax)
+    }
 
   }
 }

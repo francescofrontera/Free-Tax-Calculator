@@ -1,0 +1,4 @@
+category;name;price;isImported;quantity;id
+book;book;12.49;false;1;02c7a763-e1fe-4e64-b934-cf006bf55616
+music;cd;14.99;false;1;02c7a763-e1fe-4e64-b934-cf006bf55617
+food;chocolate;0.85;false;1;02c7a763-e1fe-4e64-b934-cf006bf55618
