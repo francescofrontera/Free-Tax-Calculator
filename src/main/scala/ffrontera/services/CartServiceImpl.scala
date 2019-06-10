@@ -53,8 +53,7 @@ sealed class CartServiceImpl(taxRange: BigDecimal = BigDecimal("0.10"),
 
   def removeProduct(pId: UUID): Either[CommonError.CartError, UUID] =
     cart.get(pId) match {
-      case Some(product) =>
-        Right(updateOrRemove(product))
+      case Some(product) => Right(updateOrRemove(product))
       case None =>
         Left(
           CommonError.NoSuchProductException(
@@ -79,9 +78,9 @@ sealed class CartServiceImpl(taxRange: BigDecimal = BigDecimal("0.10"),
           isImported
         )
 
-        val newPrice = (price + totalClass) * qt
+        val newPrice = price + totalClass
         val updatedItems = item.copy(price = newPrice) :: items
-        val updatedTot = tot + newPrice
+        val updatedTot = tot + (newPrice * qt)
         val updatedTax = totTax + (totalClass * qt)
 
         (updatedItems, updatedTot, updatedTax)
