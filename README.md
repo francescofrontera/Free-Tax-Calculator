@@ -1,0 +1,1 @@
+[![Build Status](https://travis-ci.com/francescofrontera/sales-taxes.svg?token=cjAodw4VqoNWKsXG3Qo2&branch=master)](https://travis-ci.com/francescofrontera/sales-taxes)

@@ -8,6 +8,7 @@ import ffrontera.models.Item
 
 import scala.collection.mutable
 
+//FIXME: Paramtrized Service
 sealed class CartServiceImpl extends CartService with TaxOps with LazyLogging {
   final val BasicRate = BigDecimal("0.10")
   final val ImportedRate = BigDecimal("0.05")
