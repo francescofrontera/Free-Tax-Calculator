@@ -1,9 +1,5 @@
 package ffrontera.models
 
-import java.util.UUID
-
-import ffrontera.models.ProductEnum.Category
-
 object ProductEnum {
   sealed trait Category
 
@@ -20,17 +16,3 @@ object ProductEnum {
     !notApplicableTaxCategory.contains(category)
 
 }
-
-object Item {
-  def apply(category: Category,
-            name: String,
-            price: String,
-            isImported: Boolean = false,
-            id: UUID = UUID.randomUUID()): Item =
-    new Item(category, name, BigDecimal(price), isImported, id)
-}
-sealed case class Item(category: ProductEnum.Category,
-                       name: String,
-                       price: BigDecimal,
-                       isImported: Boolean,
-                       id: UUID)

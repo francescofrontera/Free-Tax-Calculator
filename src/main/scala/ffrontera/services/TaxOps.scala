@@ -17,7 +17,11 @@ trait TaxOps { _: CartServiceImpl =>
 
   protected def composeCalculationAndScale(price: BigDecimal,
                                            category: ProductEnum.Category,
-                                           isImported: Boolean) =
-    (calculateTax(price, category) + calculateImportedTax(price, isImported)).roundField(ImportedRate)
+                                           isImported: Boolean) = {
+    val cTax = calculateTax(price, category)
+    val iTax = calculateImportedTax(price, isImported)
+
+    (cTax + iTax) roundField ImportedRate
+  }
 
 }
