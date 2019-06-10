@@ -4,6 +4,7 @@ import ffrontera.models.{Item, ProductEnum}
 import ffrontera.services.CartServiceImpl
 import org.scalatest.{Matchers, WordSpec}
 
+//FIXME: testing produced list + ADD
 class CartServiceSpec extends WordSpec with Matchers {
   "CartService" should {
     "Calculate correct output" in {
@@ -15,8 +16,8 @@ class CartServiceSpec extends WordSpec with Matchers {
       cartService.addProduct(Item(ProductEnum.Food, "chocolate bar", "0.85"))
 
       val (_, tot, totTax) = cartService.calculateTaxForAllProducts
-      tot.toString shouldBe "29.83"
-      totTax.toString shouldBe "1.50"
+      tot shouldBe 29.83
+      totTax shouldBe 1.50
     }
 
     "Calculate correct output with imported" in {
@@ -30,25 +31,24 @@ class CartServiceSpec extends WordSpec with Matchers {
 
 
       val (_, tot, totTax) = cartService.calculateTaxForAllProducts
-      tot.toString shouldBe "65.15"
-      totTax.toString shouldBe "7.65"
+      tot shouldBe 65.15
+      totTax shouldBe 7.65
     }
 
-    "Calculate corret output with imported and not" in {
+    "Calculate correct output with imported and not" in {
       val cartService = new CartServiceImpl()
       cartService.addProduct(
         Item(ProductEnum.Other, "bottle of perfume", "27.99", true))
       cartService.addProduct(
         Item(ProductEnum.Other, "bottle of perfume", "18.99"))
       cartService.addProduct(
-        Item(ProductEnum.Medical, "pillols", "9.75"))
+        Item(ProductEnum.Medical, "pillows", "9.75"))
       cartService.addProduct(
         Item(ProductEnum.Food, "chocolate", "11.25", true))
 
       val (_, tot, totTax) = cartService.calculateTaxForAllProducts
-      tot.toString shouldBe "74.68"
-      totTax.toString shouldBe "6.70"
-
+      tot shouldBe 74.68
+      totTax shouldBe 6.70
     }
   }
 
