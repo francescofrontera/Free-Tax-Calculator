@@ -12,7 +12,6 @@ object Utils {
           .multiply(rounding)
       }
     }
-
   }
 
 }

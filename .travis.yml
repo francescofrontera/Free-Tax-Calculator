@@ -1,12 +1,8 @@
-language: java
-env:
-  - SCALA_VERSION=2.12.1
-os:
-  - osx
-script:
-  - ./sbt "++$SCALA_VERSION" test
-matrix:
-  include:
-    - env: SCALA_VERSION=2.12.1
-      os: linux
-      jdk: oraclejdk7
+language: scala
+scala:
+  - 2.12.1
+jdk:
+  - oraclejdk7
+  - openjdk6
+
+script: sbt ++$TRAVIS_SCALA_VERSION check-gen-type-classes test
