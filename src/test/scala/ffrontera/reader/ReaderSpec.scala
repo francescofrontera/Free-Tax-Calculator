@@ -8,7 +8,7 @@ import ffrontera.models.ProductEnum.Book
 import org.scalatest.{Matchers, WordSpec}
 
 class ReaderSpec extends WordSpec with Matchers {
-  import ffrontera.Reader.Reader
+  import ffrontera.reader.Reader
 
   "Reader" should {
     "Read correct csv" in {

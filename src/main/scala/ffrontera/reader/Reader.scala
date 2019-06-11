@@ -1,4 +1,4 @@
-package ffrontera.Reader
+package ffrontera.reader
 
 import java.io.File
 import java.util.UUID

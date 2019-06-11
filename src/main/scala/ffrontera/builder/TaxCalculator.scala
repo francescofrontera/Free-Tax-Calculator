@@ -1,6 +1,6 @@
 package ffrontera.builder
 
-import ffrontera.Reader.Reader
+import ffrontera.reader.Reader
 import ffrontera.models.Item
 import ffrontera.services.{CartService, CartServiceImpl}
 

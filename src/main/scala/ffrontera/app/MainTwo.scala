@@ -3,7 +3,7 @@ package ffrontera.app
 import ffrontera.builder.TaxCalculator
 
 object MainTwo extends App {
-  import ffrontera.Reader.Reader._
+  import ffrontera.reader.Reader._
 
   val (items, total, totalTax) = TaxCalculator
     .from(

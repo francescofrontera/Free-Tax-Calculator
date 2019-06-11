@@ -5,7 +5,7 @@ import java.io.File
 import ffrontera.builder.TaxCalculator
 
 object Main extends App {
-  import ffrontera.Reader.Reader._
+  import ffrontera.reader.Reader._
 
   val (items, total, totalTax) = TaxCalculator
     .from(new File(getClass.getResource("/test_one.csv").getPath))
