@@ -18,4 +18,5 @@ object MainTwo extends App {
   println(s"ITEMS => \n\t${items.mkString("\n\t")}")
   println(s"TOTAL => $total")
   println(s"TAX => $totalTax")
+
 }
