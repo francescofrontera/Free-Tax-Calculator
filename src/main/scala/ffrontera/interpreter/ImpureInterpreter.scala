@@ -10,7 +10,7 @@ import scalaz.Id.Id
 import scalaz.{Id, ~>}
 
 trait ImpureInterpreter {
-  def impure: SalesTaxDSL ~> Id.Id =
+  final def impure: SalesTaxDSL ~> Id.Id =
     new (SalesTaxDSL ~> Id) {
       val state = collection.mutable.Map.empty[UUID, Item]
 

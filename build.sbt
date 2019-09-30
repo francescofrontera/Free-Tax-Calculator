@@ -6,23 +6,23 @@ scalaVersion := "2.12.8"
 
 resolvers += Resolver.sonatypeRepo("releases")
 
-addCompilerPlugin("org.typelevel" %% "kind-projector" % "0.10.3")
-
-// if your project uses multiple Scala versions, use this for cross building
-addCompilerPlugin(
-  "org.typelevel" % "kind-projector" % "0.10.3" cross CrossVersion.binary)
-
 // if your project uses both 2.10 and polymorphic lambdas
 cancelable in Global := true
+
+lazy val scalazVersion = "7.2.28"
+lazy val scalaTestVersion = "3.0.5"
+
+scalacOptions := Seq(
+  "-unchecked",
+  "-deprecation",
+  "-target:jvm-1.8",
+  "-feature",
+  "-language:implicitConversions",
+  "-language:higherKinds"
+)
+
 libraryDependencies ++= Seq(
-  "org.scalatest" %% "scalatest" % "3.0.5" % "test",
-  "org.scalaz" %% "scalaz-core" % "7.2.28",
-  "ch.qos.logback" % "logback-classic" % "1.2.3",
-  "com.typesafe.scala-logging" %% "scala-logging" % "3.9.2"
-) ++ (scalaBinaryVersion.value match {
-  case "2.10" =>
-    compilerPlugin(
-      "org.scalamacros" % "paradise" % "2.1.0" cross CrossVersion.full) :: Nil
-  case _ =>
-    Nil
-})
+  "org.scalatest" %% "scalatest" % scalaTestVersion % "test",
+  "org.scalaz" %% "scalaz-effect" % scalazVersion,
+  "org.scalaz" %% "scalaz-core" % scalazVersion,
+)

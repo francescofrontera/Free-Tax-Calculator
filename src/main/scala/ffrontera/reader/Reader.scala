@@ -1,13 +1,12 @@
 package ffrontera.reader
 
-import java.io.File
 import java.util.UUID
 
 import ffrontera.models.{Item, ProductEnum}
-
+import scalaz.effect._
 
 trait Reader {
-  def apply(): Seq[Item]
+  def apply(): IO[List[Item]]
 }
 
 object Reader {
@@ -24,24 +23,26 @@ object Reader {
         UUID.fromString(id))
   }
 
-  implicit def fromFile(in: String): Reader = new Reader {
-    override def apply(): Seq[Item] = {
-      val lines = io.Source
-        .fromResource(in)
-        .getLines()
-        .drop(1)
-        .map(line => splittingLogic(line))
+  implicit def fromFile(in: String): Reader =
+    () =>
+      IO {
+        val lines = scala.io.Source
+          .fromResource(in)
+          .getLines()
+          .drop(1)
+          .map(line => splittingLogic(line))
 
-      lines.map(arrayAsItem).toSeq
-    }
-
-  }
-
-  implicit def fromSeq(in: Seq[String]): Reader = new Reader {
-    override def apply(): Seq[Item] = {
-      in.map { line =>
-        arrayAsItem(splittingLogic(line))
+        lines.map(arrayAsItem).toList
       }
-    }
-  }
+
+  implicit def fromSeq(in: List[String]): Reader =
+    () =>
+      IO {
+        in.map { line =>
+          arrayAsItem(splittingLogic(line))
+        }
+      }
+
+
+  def readData(reader: Reader): IO[List[Item]] = reader()
 }
