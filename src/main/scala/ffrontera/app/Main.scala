@@ -15,7 +15,7 @@ import scalaz.syntax.traverse._
 object Main extends App {
   type Op[A] = Free[SalesTaxDSL, A]
 
-  implicit val executor: SalesTaxDSL ~> Id.Id = SalesTaxInterpreter.ImpureInterpreter
+  implicit val executor: SalesTaxDSL ~> Id.Id = SalesTaxInterpreter.impure
 
   def from(r: Reader): List[Item] = r().toList
 
