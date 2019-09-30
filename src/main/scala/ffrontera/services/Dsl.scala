@@ -11,42 +11,38 @@ object Dsl {
   final case class TaxResult(ls: List[Item], tax: BigDecimal, tax2: BigDecimal)
 
   sealed trait SalesTaxDSL[V]
-
   final case class AddProduct(product: Item) extends SalesTaxDSL[UUID]
-
-  final case class RemoveProduct(product: UUID) extends SalesTaxDSL[Either[CartError, UUID]]
-
+  final case class RemoveProduct(product: UUID)
+      extends SalesTaxDSL[Either[CartError, UUID]]
   final case class GetItem(product: UUID) extends SalesTaxDSL[Option[Item]]
-
   final case class GetAllProducts() extends SalesTaxDSL[Seq[Item]]
-
   final case class Tax(taxRange: BigDecimal,
                        importedTaxRange: BigDecimal,
                        roundTax: BigDecimal,
-                       allItems: Seq[Item]) extends SalesTaxDSL[TaxResult]
+                       allItems: Seq[Item])
+      extends SalesTaxDSL[TaxResult]
 
-  implicit def freeMonad[V] =
-    Free.freeMonad[SalesTaxDSL]
-
-  def addProduct(v: Item): Free[SalesTaxDSL, UUID] =
+  final def addProduct(v: Item): Free[SalesTaxDSL, UUID] =
     Free.liftF[SalesTaxDSL, UUID](AddProduct(v))
 
-  def getProduct(id: UUID): Free[SalesTaxDSL, Option[Item]] =
+  final def getProduct(id: UUID): Free[SalesTaxDSL, Option[Item]] =
     Free.liftF[SalesTaxDSL, Option[Item]](GetItem(id))
 
-  def removeProduct(id: UUID): Free[SalesTaxDSL, Either[CartError, UUID]] =
+  final def removeProduct(
+      id: UUID): Free[SalesTaxDSL, Either[CartError, UUID]] =
     Free.liftF[SalesTaxDSL, Either[CartError, UUID]](RemoveProduct(id))
 
-  def getAllProduct: Free[SalesTaxDSL, Seq[Item]] =
+  final def getAllProduct: Free[SalesTaxDSL, Seq[Item]] =
     Free.liftF[SalesTaxDSL, Seq[Item]](GetAllProducts())
 
-  def calculateTax(taxRange: BigDecimal = BigDecimal("0.10"),
-                   importedTaxRange: BigDecimal = BigDecimal("0.05"),
-                   roundTax: BigDecimal = BigDecimal("0.05")): Free[SalesTaxDSL, TaxResult] =
+  final def calculateTax(
+      taxRange: BigDecimal = BigDecimal("0.10"),
+      importedTaxRange: BigDecimal = BigDecimal("0.05"),
+      roundTax: BigDecimal = BigDecimal("0.05")): Free[SalesTaxDSL, TaxResult] =
     for {
       items ← getAllProduct
-      computation ←
-        Free.liftF[SalesTaxDSL, TaxResult](Tax(taxRange, importedTaxRange, roundTax, items))
+      computation ← Free.liftF[SalesTaxDSL, TaxResult](
+        Tax(taxRange, importedTaxRange, roundTax, items))
     } yield computation
 
 }

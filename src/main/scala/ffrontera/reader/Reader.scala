@@ -5,6 +5,7 @@ import java.util.UUID
 
 import ffrontera.models.{Item, ProductEnum}
 
+
 trait Reader {
   def apply(): Seq[Item]
 }
@@ -23,10 +24,10 @@ object Reader {
         UUID.fromString(id))
   }
 
-  implicit def fromFile(in: File): Reader = new Reader {
+  implicit def fromFile(in: String): Reader = new Reader {
     override def apply(): Seq[Item] = {
       val lines = io.Source
-        .fromFile(in)
+        .fromResource(in)
         .getLines()
         .drop(1)
         .map(line => splittingLogic(line))

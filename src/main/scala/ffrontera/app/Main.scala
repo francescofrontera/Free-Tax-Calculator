@@ -1,50 +1,38 @@
 package ffrontera.app
 
-import java.io.File
 import java.util.UUID
 
-import ffrontera.interpeter.Runner
-import ffrontera.models.{Item, ProductEnum}
+import ffrontera.interpreter.Runner._
+import ffrontera.interpreter.SalesTaxInterpreter
+import ffrontera.models.Item
 import ffrontera.reader.Reader
-import scalaz.{Free, Semigroup}
-//
-//import java.io.File
-//
-//import ffrontera.builder.TaxCalculator
-//
-//object Main extends App {
-//  import ffrontera.reader.Reader._
-//
-//  val (items, total, totalTax) = TaxCalculator
-//    .from(new File(getClass.getResource("/test_one.csv").getPath))
-//    .build
-//    .calculateTaxForAllProducts
-//
-//  println(s"ITEMS => \n\t${items.mkString("\n\t")}")
-//  println(s"TOTAL => $total")
-//  println(s"TAX => $totalTax")
-//}
+import ffrontera.reader.Reader._
+import ffrontera.services.Dsl._
+import scalaz.{Free, Id, ~>}
+import scalaz.std.list._
+import scalaz.syntax.traverse._
 
 object Main extends App {
-  import ffrontera.services.Dsl._
-  import scalaz.std.list._
-  import scalaz.syntax.traverse._
+  type Op[A] = Free[SalesTaxDSL, A]
 
-  def from(items: Reader) = items()
+  implicit val executor: SalesTaxDSL ~> Id.Id = SalesTaxInterpreter.ImpureInterpreter
 
-  implicit def asSemigroup = new Semigroup[Item] {
-    override def append(f1: Item, f2: ⇒ Item): Item = f1
-  }
+  def from(r: Reader): List[Item] = r().toList
 
-  //from(new File(getClass.getResource("/test_one.csv").getPath)).map(addProduct).sequence[Item, ?]
   def program: Free[SalesTaxDSL, TaxResult] = {
+    //TODO: IMPURE CODE HERE, wrapping on IO
+    val asFree = from("test_one.csv") map addProduct
+
     for {
-      _ ← addProduct(Item(ProductEnum.Medical, "Tachipirina", "10.99"))
-      _ ← addProduct(Item(ProductEnum.Medical, "Tachipirina", "10.99"))
+      _ ← asFree.sequence[Op, UUID]
       taxResult ← calculateTax()
     } yield taxResult
   }
 
-  val result: TaxResult = Runner.impureRunner(program)
-  println(s"SHOW THE RESULT ${result}")
+
+  val TaxResult(items, total, totalTax) = program.execute
+
+  println(s"ITEMS => \n\t${items.mkString("\n\t")}")
+  println(s"TOTAL => $total")
+  println(s"TAX => $totalTax")
 }

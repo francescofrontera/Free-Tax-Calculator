@@ -4,15 +4,15 @@ import java.util.UUID
 
 import ffrontera.errors.CommonError.NoSuchProductException
 import ffrontera.models.Item
-import ffrontera.services.Dsl
-import ffrontera.services.ops.TaxOps
+import ffrontera.services.{Dsl, TaxOps}
 import scalaz.Id.Id
-import scalaz.{Free, ~>}
+import scalaz.{Free, Id, Monad, ~>}
 
-package object interpeter {
+package object interpreter {
   import Dsl._
 
   object SalesTaxInterpreter {
+    //TODO: Consider to move in OPS
     private def calculateTax(items: Seq[Item],
                              taxRange: BigDecimal,
                              importedTaxRange: BigDecimal,
@@ -64,11 +64,18 @@ package object interpeter {
             calculateTax(items, range, imRange, rTax)
         }
       }
+
+    //Implement pure interpreter using Scalaz 8
   }
 
   object Runner {
-    def impureRunner[A](program: Free[SalesTaxDSL, A]): scalaz.Id.Id[A] =
-      program.foldMap(SalesTaxInterpreter.ImpureInterpreter)
+
+    implicit class Wrapper[OUT](program: Free[SalesTaxDSL, OUT]) {
+      def execute[F[_]](implicit
+                        interpreter: SalesTaxDSL ~> F,
+                        monad: Monad[F]): F[OUT] = program.foldMap(interpreter)
+    }
+
   }
 
 }

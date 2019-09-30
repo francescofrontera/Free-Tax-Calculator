@@ -1,4 +1,4 @@
-package ffrontera.services.ops
+package ffrontera.services
 
 import ffrontera.models.ProductEnum
 
@@ -6,12 +6,12 @@ object TaxOps {
 
   import ffrontera.Utils._
 
-  @inline def zero: BigDecimal = BigDecimal("0.0")
+  @inline final val zero: BigDecimal = BigDecimal("0.0")
 
   @inline private def calculateTax =
     (price: BigDecimal, range: BigDecimal) => price * range
 
-  def composeCalculationAndScale(price: BigDecimal,
+  final def composeCalculationAndScale(price: BigDecimal,
                                  basetax: BigDecimal,
                                  importedTax: BigDecimal,
                                  roundApproximation: BigDecimal,
