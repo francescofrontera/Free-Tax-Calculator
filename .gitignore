@@ -20,6 +20,9 @@ logs/
 project/*-shim.sbt
 project/project/
 project/target/
+.bloop
+.metals
+project/bloop
 target/
 .scala_dependencies
 .worksheet

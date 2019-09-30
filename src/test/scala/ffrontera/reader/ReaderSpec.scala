@@ -8,6 +8,7 @@ import ffrontera.models.ProductEnum.Book
 import org.scalatest.{Matchers, WordSpec}
 
 class ReaderSpec extends WordSpec with Matchers {
+
   import ffrontera.reader.Reader
 
   "Reader" should {

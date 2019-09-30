@@ -1,21 +1,22 @@
 package ffrontera.services.ops
 
 import ffrontera.models.ProductEnum
-import ffrontera.services.CartServiceImpl
 
-trait TaxOps { _: CartServiceImpl =>
+object TaxOps {
+
   import ffrontera.Utils._
 
-  @inline protected def zero: BigDecimal = BigDecimal("0.0")
+  @inline def zero: BigDecimal = BigDecimal("0.0")
+
   @inline private def calculateTax =
     (price: BigDecimal, range: BigDecimal) => price * range
 
-  protected def composeCalculationAndScale(price: BigDecimal,
-                                           basetax: BigDecimal,
-                                           importedTax: BigDecimal,
-                                           roundApproximation: BigDecimal,
-                                           category: ProductEnum.Category,
-                                           isImported: Boolean): BigDecimal = {
+  def composeCalculationAndScale(price: BigDecimal,
+                                 basetax: BigDecimal,
+                                 importedTax: BigDecimal,
+                                 roundApproximation: BigDecimal,
+                                 category: ProductEnum.Category,
+                                 isImported: Boolean): BigDecimal = {
     val gTax =
       if (ProductEnum.notTaxCategory(category))
         calculateTax(price, basetax)

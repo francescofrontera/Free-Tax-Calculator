@@ -2,17 +2,51 @@ package ffrontera.services
 
 import java.util.UUID
 
-import ffrontera.errors.CommonError
+import ffrontera.errors.CommonError.CartError
 import ffrontera.models.Item
+import scalaz.Free
 
-trait CartService {
-  type SalesTaxResult = (List[Item], BigDecimal, BigDecimal)
+object Dsl {
 
-  def addProduct(p: Item): UUID
-  def removeProduct(pId: UUID): Either[CommonError.CartError, UUID]
+  final case class TaxResult(ls: List[Item], tax: BigDecimal, tax2: BigDecimal)
 
-  def getItem(id: UUID): Option[Item]
-  def getAllProducts: Seq[Item]
+  sealed trait SalesTaxDSL[V]
 
-  def calculateTaxForAllProducts: SalesTaxResult
+  final case class AddProduct(product: Item) extends SalesTaxDSL[UUID]
+
+  final case class RemoveProduct(product: UUID) extends SalesTaxDSL[Either[CartError, UUID]]
+
+  final case class GetItem(product: UUID) extends SalesTaxDSL[Option[Item]]
+
+  final case class GetAllProducts() extends SalesTaxDSL[Seq[Item]]
+
+  final case class Tax(taxRange: BigDecimal,
+                       importedTaxRange: BigDecimal,
+                       roundTax: BigDecimal,
+                       allItems: Seq[Item]) extends SalesTaxDSL[TaxResult]
+
+  implicit def freeMonad[V] =
+    Free.freeMonad[SalesTaxDSL]
+
+  def addProduct(v: Item): Free[SalesTaxDSL, UUID] =
+    Free.liftF[SalesTaxDSL, UUID](AddProduct(v))
+
+  def getProduct(id: UUID): Free[SalesTaxDSL, Option[Item]] =
+    Free.liftF[SalesTaxDSL, Option[Item]](GetItem(id))
+
+  def removeProduct(id: UUID): Free[SalesTaxDSL, Either[CartError, UUID]] =
+    Free.liftF[SalesTaxDSL, Either[CartError, UUID]](RemoveProduct(id))
+
+  def getAllProduct: Free[SalesTaxDSL, Seq[Item]] =
+    Free.liftF[SalesTaxDSL, Seq[Item]](GetAllProducts())
+
+  def calculateTax(taxRange: BigDecimal = BigDecimal("0.10"),
+                   importedTaxRange: BigDecimal = BigDecimal("0.05"),
+                   roundTax: BigDecimal = BigDecimal("0.05")): Free[SalesTaxDSL, TaxResult] =
+    for {
+      items ← getAllProduct
+      computation ←
+        Free.liftF[SalesTaxDSL, TaxResult](Tax(taxRange, importedTaxRange, roundTax, items))
+    } yield computation
+
 }

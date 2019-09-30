@@ -29,10 +29,10 @@ class CartServiceSpec extends WordSpec with Matchers {
         val p2 =
           Item(ProductEnum.Other, "music cd", "14.99", false, id = musicCdId)
         val p3 = Item(ProductEnum.Food,
-                      "chocolate bar",
-                      "0.85",
-                      false,
-                      id = foodProductID)
+          "chocolate bar",
+          "0.85",
+          false,
+          id = foodProductID)
 
         val service = CartServiceImpl.fromSeq(Seq(p1, p2, p3))
         service.getAllProducts.size shouldBe 3
@@ -57,10 +57,10 @@ class CartServiceSpec extends WordSpec with Matchers {
           Item(ProductEnum.Other, "music cd", "14.99", false, id = musicCdId))
         val p3 = cartService.addProduct(
           Item(ProductEnum.Food,
-               "chocolate bar",
-               "0.85",
-               false,
-               id = foodProductID))
+            "chocolate bar",
+            "0.85",
+            false,
+            id = foodProductID))
 
         val (_, tot, totTax) = cartService.calculateTaxForAllProducts
         tot shouldBe 29.83

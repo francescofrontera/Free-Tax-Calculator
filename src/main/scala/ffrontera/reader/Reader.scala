@@ -13,17 +13,17 @@ object Reader {
   @inline private def splittingLogic(lines: String, delimiter: String = ";") =
     lines.split(delimiter)
 
-  private def arrayAsItem(in: Array[String]) = in match {
+  private def arrayAsItem(in: Array[String]): Item = in match {
     case Array(category, name, price, isImported, quantity, id) =>
       Item(ProductEnum.fromString(category),
-           name,
-           price,
-           isImported.toBoolean,
-           quantity.toInt,
-           UUID.fromString(id))
+        name,
+        price,
+        isImported.toBoolean,
+        quantity.toInt,
+        UUID.fromString(id))
   }
 
-  implicit def fromFile(in: File) = new Reader {
+  implicit def fromFile(in: File): Reader = new Reader {
     override def apply(): Seq[Item] = {
       val lines = io.Source
         .fromFile(in)
@@ -36,7 +36,7 @@ object Reader {
 
   }
 
-  implicit def fromSeq(in: Seq[String]) = new Reader {
+  implicit def fromSeq(in: Seq[String]): Reader = new Reader {
     override def apply(): Seq[Item] = {
       in.map { line =>
         arrayAsItem(splittingLogic(line))
