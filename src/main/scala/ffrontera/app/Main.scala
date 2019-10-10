@@ -24,7 +24,7 @@ object Main extends App {
 
   def program: Op[TaxResult] =
     for {
-      read ← data.sequence[Op, UUID]
+      _ ← data.sequence[Op, UUID]
       result ← calculateTax()
     } yield result
 
