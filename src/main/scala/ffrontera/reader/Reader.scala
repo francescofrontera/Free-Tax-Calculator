@@ -5,15 +5,18 @@ import java.util.UUID
 import ffrontera.models.{Item, ProductEnum}
 import scalaz.effect._
 
+import scala.util.Try
+
 trait Reader {
   def apply(): IO[List[Item]]
 }
 
 object Reader {
-  @inline private def splittingLogic(lines: String, delimiter: String = ";") =
+  private[this] def splittingLogic(lines: String,
+                                   delimiter: String = ";"): Array[String] =
     lines.split(delimiter)
 
-  private def arrayAsItem(in: Array[String]): Item = in match {
+  private[this] def arrayAsItem(in: Array[String]): Item = in match {
     case Array(category, name, price, isImported, quantity, id) =>
       Item(ProductEnum.fromString(category),
         name,
@@ -25,15 +28,18 @@ object Reader {
 
   implicit def fromFile(in: String): Reader =
     () =>
-      IO {
-        val lines = scala.io.Source
-          .fromResource(in)
-          .getLines()
-          .drop(1)
-          .map(line => splittingLogic(line))
+      Try(scala.io.Source.fromResource(in)).fold(
+        IO.throwIO,
+        bufferedSource ⇒
+          IO {
+            val lines = bufferedSource
+              .getLines()
+              .drop(1)
+              .map(line => splittingLogic(line))
 
-        lines.map(arrayAsItem).toList
-      }
+            lines.map(arrayAsItem).toList
+          }
+      )
 
   implicit def fromSeq(in: List[String]): Reader =
     () =>
@@ -42,7 +48,6 @@ object Reader {
           arrayAsItem(splittingLogic(line))
         }
       }
-
 
   def readData(reader: Reader): IO[List[Item]] = reader()
 }

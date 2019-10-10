@@ -12,7 +12,7 @@ object ProductEnum {
 
   case object Other extends Category
 
-  def notApplicableTaxCategory: List[Category] =
+  private[this] def notApplicableTaxCategory: List[Category] =
     Food :: Book :: Medical :: Nil
 
   def notTaxCategory(category: Category): Boolean =

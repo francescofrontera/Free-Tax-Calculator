@@ -6,6 +6,6 @@ object CommonError {
     def msg: String
   }
 
-  case class NoSuchProductException(msg: String) extends CartError
+  final case class NoSuchProductException(msg: String) extends CartError
 
 }

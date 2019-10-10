@@ -7,26 +7,28 @@ import ffrontera.interpreter.SalesTaxInterpreter
 import ffrontera.reader.Reader
 import ffrontera.reader.Reader._
 import ffrontera.services.Dsl._
-import scalaz.Free
-import scalaz.effect.IO
 import scalaz.std.list._
 import scalaz.syntax.traverse._
+import scalaz.{Free, Id, ~>}
 
 object Main extends App {
   type Op[A] = Free[SalesTaxDSL, A]
 
-  implicit val executor = SalesTaxInterpreter.impure
+  implicit val executor: SalesTaxDSL ~> Id.Id = SalesTaxInterpreter.impure
 
-  def program: IO[Op[TaxResult]] =
+  def data: List[Free[SalesTaxDSL, UUID]] =
+    Reader
+      .readData("test_one.csv")
+      .map(items ⇒ items.map(addProduct))
+      .unsafePerformIO()
+
+  def program: Op[TaxResult] =
     for {
-      read ← Reader.readData("test_one.csv").map(items ⇒ items.map(addProduct))
-      result ← IO(read.sequence[Op, UUID].flatMap(_ ⇒ calculateTax()))
+      read ← data.sequence[Op, UUID]
+      result ← calculateTax()
     } yield result
 
-  val TaxResult(items, total, totalTax) =
-    program
-      .map(_.execute)
-      .unsafePerformIO()
+  val TaxResult(items, total, totalTax) = program.execute
 
   println(s"ITEMS => \n\t${items.mkString("\n\t")}")
   println(s"TOTAL => $total")
