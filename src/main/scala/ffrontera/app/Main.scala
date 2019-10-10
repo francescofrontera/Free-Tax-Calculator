@@ -22,6 +22,7 @@ object Main extends App {
       .map(items ⇒ items.map(addProduct))
       .unsafePerformIO()
 
+  //We could make all program with IO..
   def program: Op[TaxResult] =
     for {
       _ ← data.sequence[Op, UUID]
