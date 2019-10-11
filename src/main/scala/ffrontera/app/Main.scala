@@ -4,15 +4,14 @@ import java.util.UUID
 
 import ffrontera.interpreter.Runner._
 import ffrontera.interpreter.SalesTaxInterpreter
-import ffrontera.reader.Reader
-import ffrontera.reader.Reader._
-import ffrontera.services.Dsl._
+import ffrontera.reader.Reader, Reader._
+import ffrontera.dsl.Dsl._
 import scalaz.std.list._
 import scalaz.syntax.traverse._
 import scalaz.{Free, Id, ~>}
 
 object Main extends App {
-  type Op[A] = Free[SalesTaxDSL, A]
+  type ProgramResult[A] = Free[SalesTaxDSL, A]
 
   implicit val executor: SalesTaxDSL ~> Id.Id = SalesTaxInterpreter.impure
 
@@ -23,9 +22,9 @@ object Main extends App {
       .unsafePerformIO()
 
   //We could make all program with IO..
-  def program: Op[TaxResult] =
+  def program: ProgramResult[TaxResult] =
     for {
-      _ ← data.sequence[Op, UUID]
+      _ ← data.sequence[ProgramResult, UUID]
       result ← calculateTax()
     } yield result
 

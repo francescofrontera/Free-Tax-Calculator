@@ -1,4 +1,4 @@
-package ffrontera.services
+package ffrontera.dsl
 
 import java.util.UUID
 
@@ -8,14 +8,15 @@ import scalaz.Free
 
 object Dsl {
 
+  //Data
   final case class TaxResult(ls: List[Item], tax: BigDecimal, tax2: BigDecimal)
 
+  //DSL models
   sealed trait SalesTaxDSL[V]
 
   final case class AddProduct(product: Item) extends SalesTaxDSL[UUID]
 
-  final case class RemoveProduct(product: UUID)
-    extends SalesTaxDSL[Either[CartError, UUID]]
+  final case class RemoveProduct(product: UUID) extends SalesTaxDSL[Either[CartError, UUID]]
 
   final case class GetItem(product: UUID) extends SalesTaxDSL[Option[Item]]
 
@@ -24,9 +25,9 @@ object Dsl {
   final case class Tax(taxRange: BigDecimal,
                        importedTaxRange: BigDecimal,
                        roundTax: BigDecimal,
-                       allItems: Seq[Item])
-    extends SalesTaxDSL[TaxResult]
+                       allItems: Seq[Item]) extends SalesTaxDSL[TaxResult]
 
+  //Actions
   final def addProduct(v: Item): Free[SalesTaxDSL, UUID] =
     Free.liftF[SalesTaxDSL, UUID](AddProduct(v))
 

@@ -4,12 +4,15 @@ import java.util.UUID
 
 import ffrontera.errors.CommonError.NoSuchProductException
 import ffrontera.models.Item
-import ffrontera.services.Dsl._
-import ffrontera.services.TaxUtils
+import ffrontera.dsl.Dsl._
+
 import scalaz.Id.Id
 import scalaz.{Id, ~>}
 
 trait ImpureInterpreter {
+
+  import ffrontera.dsl.tax.utils._
+
   final def impure: SalesTaxDSL ~> Id.Id =
     new (SalesTaxDSL ~> Id) {
       val state = collection.mutable.Map.empty[UUID, Item]
@@ -36,7 +39,7 @@ trait ImpureInterpreter {
         case GetAllProducts() ⇒ state.values.toSeq
 
         case Tax(range, imRange, rTax, items) ⇒
-          TaxUtils.calculateTax(items, range, imRange, rTax)
+          calculate(items, range, imRange, rTax)
       }
     }
 

@@ -1,12 +1,9 @@
-name := "sales-taxes"
-
+name := "free-tax-calculator"
 version := "0.1"
-
 scalaVersion := "2.12.8"
 
 resolvers += Resolver.sonatypeRepo("releases")
 
-// if your project uses both 2.10 and polymorphic lambdas
 cancelable in Global := true
 
 lazy val scalazVersion = "7.2.28"

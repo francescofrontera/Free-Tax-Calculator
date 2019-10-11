@@ -1,6 +1,6 @@
 package ffrontera
 
-import ffrontera.services.Dsl
+import ffrontera.dsl.Dsl
 import scalaz.{Free, Monad, ~>}
 
 package object interpreter {
